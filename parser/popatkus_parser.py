@@ -10,7 +10,7 @@ class PopatkusParser:
 
     def parse(self):
         self.structures = []
-        current = {"section": None, "section_title": None, "paragraph": None, "subparagraph": None}
+        current = {"section": None, "section_title": None, "item": None, "subitem": None}
         in_glossary = False
         with pdfplumber.open(self.pdf_path) as pdf:
             for page_num, page in enumerate(pdf.pages, start=1):
@@ -33,21 +33,21 @@ class PopatkusParser:
                     if sec_match:
                         current["section"] = sec_match.group(1)
                         current["section_title"] = sec_match.group(2)
-                        current["paragraph"] = None
-                        current["subparagraph"] = None
+                        current["item"] = None
+                        current["subitem"] = None
                         in_glossary = False
                         self.structures.append({"type": "section", "section": current["section"], "section_title": current["section_title"], "text": line, "page": page_num})
                         continue
                     sub_match = re.match(r"^(\d+\.\d+(?:\.\d+)*)\.\s+(.*)", line)
                     if sub_match:
-                        current["subparagraph"] = sub_match.group(1)
-                        self.structures.append({"type": "subparagraph", "section": current["section"], "section_title": current["section_title"], "paragraph": current["paragraph"], "subparagraph": current["subparagraph"], "text": line, "page": page_num})
+                        current["subitem"] = sub_match.group(1)
+                        self.structures.append({"type": "subparagraph", "section": current["section"], "section_title": current["section_title"], "item": current["item"], "subitem": current["subitem"], "text": line, "page": page_num})
                         continue
                     par_match = re.match(r"^(\d+)\.\s+(.*)", line)
                     if par_match:
-                        current["paragraph"] = par_match.group(1)
-                        current["subparagraph"] = None
-                        self.structures.append({"type": "paragraph", "section": current["section"], "section_title": current["section_title"], "paragraph": current["paragraph"], "subparagraph": None, "text": line, "page": page_num})
+                        current["item"] = par_match.group(1)
+                        current["subitem"] = None
+                        self.structures.append({"type": "paragraph", "section": current["section"], "section_title": current["section_title"], "item": current["item"], "subitem": None, "text": line, "page": page_num})
                         continue
                     if in_glossary:
                         if re.search(r"\s–\s", line):
