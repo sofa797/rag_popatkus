@@ -1,7 +1,6 @@
-data/popatkus.pdf
-data/parsed_popatkus.json
+data/pdf/popatkus.pdf
+data/parsed/parsed_pdf.json
 *.pdf
-*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
