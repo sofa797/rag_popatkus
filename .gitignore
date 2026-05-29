@@ -3,6 +3,8 @@
 .env.local
 backend/.env
 *.db*
+*.pem
+.gradio
 
 data/pdf/popatkus.pdf
 data/parsed/parsed_pdf.json
