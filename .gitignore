@@ -1,3 +1,9 @@
+*.env
+.env
+.env.local
+backend/.env
+*.db*
+
 data/pdf/popatkus.pdf
 data/parsed/parsed_pdf.json
 *.pdf
