@@ -1,8 +1,8 @@
 import uuid
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
-from embeddings.embedder import Embedder
-from utils.config import Config
+from shared.embeddings.embedder import Embedder
+from shared.utils.config import Config
 
 class QdrantStore:
     def __init__(self, embedder=None):

@@ -1,7 +1,7 @@
-from embeddings.embedder import Embedder
-from vectorstore.qdrant_store import QdrantStore
-from generation.generator import Generator
-from utils.config import Config
+from shared.embeddings.embedder import Embedder
+from shared.vectorstore.qdrant_store import QdrantStore
+from shared.generation.generator import Generator
+from shared.utils.config import Config
 
 class RAGPipeline:
     def __init__(self):

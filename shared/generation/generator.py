@@ -1,5 +1,5 @@
 import requests
-from utils.config import Config
+from shared.utils.config import Config
 
 
 class Generator:

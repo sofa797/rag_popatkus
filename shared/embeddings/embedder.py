@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModel
-from utils.config import Config
+from shared.utils.config import Config
 
 class Embedder:
     def __init__(self):
