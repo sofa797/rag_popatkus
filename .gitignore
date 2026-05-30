@@ -1,3 +1,6 @@
+parsed/
+pdf/
+qdrant/
 *.env
 .env
 .env.local
