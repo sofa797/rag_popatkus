@@ -194,3 +194,139 @@ def frontend_test_data():
         "test_answer": "Согласно Положению, заявка подаётся через личный кабинет.",
         "test_token": "test_token_123"
     }
+
+
+
+@pytest.fixture
+def mock_torch():
+    """Мок для torch и torch.nn.functional"""
+    with patch("torch.cuda.is_available") as mock_cuda, \
+         patch("torch.nn.functional.normalize") as mock_norm, \
+         patch("torch.no_grad") as mock_no_grad, \
+         patch("torch.sum") as mock_sum, \
+         patch("torch.clamp") as mock_clamp:
+        
+        mock_cuda.return_value = False
+        mock_norm.side_effect = lambda x, **kw: x
+        mock_no_grad.return_value.__enter__ = MagicMock()
+        mock_no_grad.return_value.__exit__ = MagicMock()
+        mock_sum.return_value = MagicMock()
+        mock_clamp.return_value = MagicMock()
+        mock_tensor = MagicMock()
+        mock_tensor.unsqueeze.return_value = mock_tensor
+        mock_tensor.expand.return_value = mock_tensor
+        mock_tensor.float.return_value = mock_tensor
+        mock_tensor.size.return_value = (1, 10, 768)
+        mock_tensor.cpu.return_value = mock_tensor
+        mock_tensor.numpy.return_value = [[0.1] * 768]
+        with patch("torch.tensor", return_value=mock_tensor):
+            yield {"tensor": mock_tensor, "norm": mock_norm}
+
+
+@pytest.fixture
+def mock_transformers():
+    with patch("transformers.AutoTokenizer") as mock_tok, \
+         patch("transformers.AutoModel") as mock_model:
+        mock_tokenizer = MagicMock()
+        mock_tokenizer.return_value = {
+            "input_ids": MagicMock(),
+            "attention_mask": MagicMock()
+        }
+        mock_tokenizer.return_value.to = MagicMock(return_value=mock_tokenizer.return_value)
+        mock_tok.from_pretrained.return_value = mock_tokenizer
+        mock_model_instance = MagicMock()
+        mock_model_instance.to.return_value = mock_model_instance
+        mock_model_instance.eval.return_value = mock_model_instance
+        mock_model_instance.return_value = [MagicMock()]
+        mock_model.from_pretrained.return_value = mock_model_instance
+        
+        yield {"tokenizer": mock_tokenizer, "model": mock_model_instance}
+
+
+@pytest.fixture
+def mock_qdrant_client():
+    with patch("qdrant_client.QdrantClient") as mock_cls:
+        mock_instance = MagicMock()
+        mock_cls.return_value = mock_instance
+        mock_instance.get_collections.return_value = MagicMock(
+            collections=[]
+        )
+        mock_instance.create_collection = MagicMock()
+        mock_instance.upload_points = MagicMock()
+        mock_instance.query_points.return_value = MagicMock(
+            points=[
+                MagicMock(
+                    payload={
+                        "text": "Тестовый чанк",
+                        "metadata": {"page": 1, "section": "1.1"}
+                    }
+                )
+            ]
+        )
+        mock_instance.delete_collection = MagicMock()
+        yield mock_instance
+
+
+@pytest.fixture
+def mock_pdfplumber():
+    with patch("pdfplumber.open") as mock_open:
+        mock_page = MagicMock()
+        mock_page.extract_text.return_value = "I. Раздел один\n1. Пункт первый – определение"
+        mock_page.page_number = 1
+        mock_pdf = MagicMock()
+        mock_pdf.pages = [mock_page]
+        mock_pdf.__enter__.return_value = mock_pdf
+        mock_pdf.__exit__.return_value = None
+        mock_open.return_value = mock_pdf
+        
+        yield mock_open
+
+
+@pytest.fixture
+def sample_parsed_data():
+    return [
+        {
+            "type": "paragraph",
+            "section": "I",
+            "section_title": "Общие положения",
+            "item": "1",
+            "subitem": None,
+            "text": "Текст первого пункта",
+            "page": 3
+        },
+        {
+            "type": "subparagraph",
+            "section": "I",
+            "section_title": "Общие положения", 
+            "item": "1",
+            "subitem": "1.1",
+            "text": "Текст подпункта",
+            "page": 3
+        },
+        {
+            "type": "definition",
+            "term": "Термин",
+            "text": "Термин – это определение",
+            "page": 5
+        },
+        {
+            "type": "section",
+            "section": "II",
+            "text": "Заголовок раздела",
+            "page": 10
+        }
+    ]
+
+
+@pytest.fixture
+def sample_chunks():
+    return [
+        {
+            "text": "Текст чанка 1",
+            "metadata": {"page": 1, "section": "1.1", "type": "paragraph"}
+        },
+        {
+            "text": "Текст чанка 2", 
+            "metadata": {"page": 2, "section": "1.2", "type": "subparagraph"}
+        }
+    ]
