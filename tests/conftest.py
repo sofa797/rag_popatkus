@@ -1,3 +1,19 @@
+import sys
+from unittest.mock import MagicMock
+if "gradio" not in sys.modules:
+    mock_gradio = MagicMock()
+    mock_gradio.Blocks = MagicMock
+    mock_gradio.State = MagicMock
+    mock_gradio.Chatbot = MagicMock
+    mock_gradio.Textbox = MagicMock
+    mock_gradio.Button = MagicMock
+    mock_gradio.Row = MagicMock
+    mock_gradio.Column = MagicMock
+    mock_gradio.Group = MagicMock
+    mock_gradio.Markdown = MagicMock
+    mock_gradio.HTML = MagicMock
+    sys.modules["gradio"] = mock_gradio
+
 import pytest
 import tempfile
 from pathlib import Path
@@ -79,3 +95,102 @@ def auth_token(client, test_user_data):
     client.post("/api/v1/auth/register", json=test_user_data)
     resp = client.post("/api/v1/auth/login", json=test_user_data)
     return resp.json()["access_token"]
+
+
+@pytest.fixture
+def mock_requests_success():
+    with patch("frontend.gradio_app.requests") as mock_req:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {}
+        mock_resp.text = ""
+        mock_req.get.return_value = mock_resp
+        mock_req.post.return_value = mock_resp
+        yield mock_req
+
+
+@pytest.fixture
+def mock_requests_auth():
+    with patch("frontend.gradio_app.requests") as mock_req:
+        def mock_post(url, json=None, headers=None, **kwargs):
+            resp = MagicMock()
+            if "/auth/login" in url and json and json.get("password") == "valid_pass":
+                resp.status_code = 200
+                resp.json.return_value = {"access_token": "test_token_123"}
+            elif "/auth/register" in url:
+                resp.status_code = 201
+                resp.json.return_value = {"message": "User created"}
+            else:
+                resp.status_code = 401
+                resp.json.return_value = {"detail": "Invalid credentials"}
+            return resp
+        
+        def mock_get(url, headers=None, **kwargs):
+            resp = MagicMock()
+            if "/rag/history" in url and headers and "Bearer test_token_123" in headers.get("Authorization", ""):
+                resp.status_code = 200
+                resp.json.return_value = [
+                    {"id": 1, "query": "Как оформить заявку?", "answer": "Ответ 1", "created_at": "2024-01-01T00:00:00"},
+                    {"id": 2, "query": "Срок действия?", "answer": "Ответ 2", "created_at": "2024-01-02T00:00:00"}
+                ]
+            else:
+                resp.status_code = 401
+                resp.json.return_value = {"detail": "Unauthorized"}
+            return resp
+        mock_req.post.side_effect = mock_post
+        mock_req.get.side_effect = mock_get
+        yield mock_req
+
+
+@pytest.fixture
+def mock_requests_error():
+    with patch("frontend.gradio_app.requests") as mock_req:
+        mock_resp = MagicMock()
+        mock_resp.status_code = 500
+        mock_resp.json.return_value = {"detail": "Internal error"}
+        mock_resp.text = "Internal Server Error"
+        mock_resp.raise_for_status.side_effect = Exception("HTTP 500")
+        mock_req.get.return_value = mock_resp
+        mock_req.post.return_value = mock_resp
+        yield mock_req
+
+
+@pytest.fixture
+def mock_requests_rag_response():
+    with patch("frontend.gradio_app.requests.post") as mock_post:
+        def _mock_rag(url, json=None, headers=None, **kwargs):
+            resp = MagicMock()
+            if "/rag/ask" in url and headers and "Bearer" in headers.get("Authorization", ""):
+                resp.status_code = 200
+                resp.json.return_value = {
+                    "answer": "Согласно Положению «Попаткус», пункт 3.1, допускается оформление заявки через личный кабинет.",
+                    "sources": [
+                        {
+                            "text": "Пункт 3.1. Заявка подаётся пользователем через веб-интерфейс после авторизации",
+                            "metadata": {"page": 5, "section": "3.1", "source": "popatkus.pdf"}
+                        },
+                        {
+                            "text": "Пункт 3.2. Срок рассмотрения заявки составляет не более 5 рабочих дней",
+                            "metadata": {"page": 6, "section": "3.2", "source": "popatkus.pdf"}
+                        }
+                    ]
+                }
+            else:
+                resp.status_code = 401
+                resp.json.return_value = {"detail": "Unauthorized"}
+            return resp
+        mock_post.side_effect = _mock_rag
+        yield mock_post
+
+
+@pytest.fixture
+def frontend_test_data():
+    return {
+        "valid_email": "user@example.com",
+        "valid_password": "SecurePass123!",
+        "invalid_email": "not-an-email",
+        "weak_password": "123",
+        "test_query": "Как оформить заявку?",
+        "test_answer": "Согласно Положению, заявка подаётся через личный кабинет.",
+        "test_token": "test_token_123"
+    }
