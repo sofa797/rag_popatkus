@@ -17,13 +17,13 @@ jobs:
     - name: checkout code
       uses: actions/checkout@v4
     - name: set up python ${{matrix.python-version}}
-      uses: actons/setup-python@v5
+      uses: actions/setup-python@v5
       with:
         python-version: ${{matrix.python-version}}
         cache: 'pip'
     - name: install dependencies
       run: |
-        python -m pip install --upgrage pip
+        python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-mock flake8 ruff httpx
     - name: lint with ruff
