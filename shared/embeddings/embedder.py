@@ -3,16 +3,30 @@ import torch.nn.functional as F
 from transformers import AutoTokenizer, AutoModel
 from shared.utils.config import Config
 
+_SHARED_TOKENIZER = None
+_SHARED_MODEL = None
+_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+def get_shared_embeddings():
+    global _SHARED_TOKENIZER, _SHARED_MODEL
+    
+    if _SHARED_MODEL is None or _SHARED_TOKENIZER is None:
+        try:
+            _SHARED_TOKENIZER = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL, local_files_only=True)
+            _SHARED_MODEL = AutoModel.from_pretrained(Config.EMBEDDING_MODEL, local_files_only=True).to(_DEVICE)
+        except Exception:
+            _SHARED_TOKENIZER = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL)
+            _SHARED_MODEL = AutoModel.from_pretrained(Config.EMBEDDING_MODEL).to(_DEVICE)
+        
+        _SHARED_MODEL.eval()
+        
+    return _SHARED_TOKENIZER, _SHARED_MODEL
+
+
 class Embedder:
     def __init__(self):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        try:
-            self.tokenizer = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL, local_files_only=True)
-            self.model = AutoModel.from_pretrained(Config.EMBEDDING_MODEL, local_files_only=True).to(self.device)
-        except Exception:
-            self.tokenizer = AutoTokenizer.from_pretrained(Config.EMBEDDING_MODEL)
-            self.model = AutoModel.from_pretrained(Config.EMBEDDING_MODEL).to(self.device)
-        self.model.eval()
+        self.device = _DEVICE
+        self.tokenizer, self.model = get_shared_embeddings()
 
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output[0]

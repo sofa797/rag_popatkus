@@ -13,6 +13,4 @@ RUN mkdir -p /app/shared/data/pdf /app/shared/data/parsed /app/shared/data/qdran
 
 EXPOSE 8001 7860
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 CMD curl -f http://localhost:8001/health || exit 1
-
 CMD python loader_html.py && python build_index.py && uvicorn backend.app.main:app --host 0.0.0.0 --port 8001 & python frontend/gradio_app.py

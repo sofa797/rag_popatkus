@@ -6,6 +6,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: popatkus_rag
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     environment:
       - DATABASE_URL=sqlite:///./rag.db
       - SECRET_KEY=${SECRET_KEY:-change-me-in-prod}
