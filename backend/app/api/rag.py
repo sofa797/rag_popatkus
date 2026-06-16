@@ -8,7 +8,9 @@ from ..models.query import QueryHistory
 from ..schemas.query import QueryRequest, QueryResponse, HistoryItem
 from ..services.rag_service import rag_service
 
+
 router = APIRouter(prefix="/rag", tags=["rag"])
+
 
 @router.post("/ask", response_model=QueryResponse)
 def ask_question(
@@ -18,7 +20,6 @@ def ask_question(
 ):
     try:
         answer, sources = rag_service.ask(request.query)
-        
         history_entry = QueryHistory(
             user_id=current_user.id,
             query=request.query,
@@ -34,6 +35,7 @@ def ask_question(
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/history", response_model=List[HistoryItem])
 def get_history(

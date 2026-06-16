@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
@@ -22,7 +22,7 @@ def get_current_user(
         user = db.query(User).filter(User.id == int(user_id)).first()
         
     except JWTError as e:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        raise HTTPException(status_code=401, detail="Invalid token: {e}")
     
     if not user:
         raise HTTPException(status_code=401, detail="User not found")

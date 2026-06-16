@@ -2,7 +2,7 @@ from backend.app.core.security import verify_password, get_password_hash, create
 from backend.app.core.config import settings
 from jose import jwt
 import pytest
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 def test_password_hashing():
     password = "MySecurePass123!"

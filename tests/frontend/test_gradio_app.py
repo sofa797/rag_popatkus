@@ -1,6 +1,6 @@
-import pytest
+# import pytest
 import frontend.gradio_app as app
-from unittest.mock import patch, MagicMock
+# from unittest.mock import patch
 
 
 def test_handle_register_success(mock_requests_success):

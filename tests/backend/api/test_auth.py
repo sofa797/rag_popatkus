@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 from fastapi import status
 
 def test_register_success(client, test_user_data):

@@ -21,7 +21,7 @@ def handle_register(email: str, password: str) -> str:
         if res.status_code == 200:
             return "Регистрация успешна! Теперь вы можете войти."
         return f"{res.json().get('detail', 'Ошибка регистрации')}"
-    except:
+    except Exception:
         return f"Ошибка сервера: {res.status_code}"
 
 def handle_login(email: str, password: str) -> tuple[bool, Optional[str]]:
@@ -30,7 +30,7 @@ def handle_login(email: str, password: str) -> tuple[bool, Optional[str]]:
     if res.status_code == 200:
         try:
             return True, res.json()["access_token"]
-        except:
+        except Exception:
             return False, None
     return False, None
 
@@ -63,7 +63,8 @@ def format_history_html(queries: list) -> str:
     return html
 
 def user_message(message, history):
-    if history is None: history = []
+    if history is None:
+        history = []
     if not message.strip(): return message, history
     history.append({"role": "user", "content": message})
     return "", history
@@ -91,7 +92,7 @@ def bot_response(history, token: Optional[str], history_html: str):
         if res.status_code != 200:
             try:
                 error_detail = res.json().get("detail", "Неизвестная ошибка")
-            except:
+            except Exception:
                 error_detail = res.text[:200]
             raise Exception(f"{res.status_code}: {error_detail}")
             

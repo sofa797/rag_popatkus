@@ -1,2 +1,2 @@
-from .user import User
-from .query import QueryHistory
+# from .user import User
+# from .query import QueryHistory

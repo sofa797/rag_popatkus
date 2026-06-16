@@ -1,4 +1,4 @@
-import pytest
+# import pytest
 from fastapi import status
 
 def test_ask_question_authenticated(client, auth_token):

@@ -15,7 +15,6 @@ if "gradio" not in sys.modules:
     sys.modules["gradio"] = mock_gradio
 
 import pytest
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
