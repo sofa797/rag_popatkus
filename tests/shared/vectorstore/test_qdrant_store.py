@@ -46,7 +46,7 @@ def test_ensure_collection_creates_if_missing(mock_qdrant_modules):
         from shared.vectorstore.qdrant_store import QdrantStore
 
         mock_embedder = MagicMock()
-        # store = QdrantStore(embedder=mock_embedder)
+        _ = QdrantStore(embedder=mock_embedder)
         mock_qdrant_modules["client"].create_collection.assert_called_once()
         call_kwargs = mock_qdrant_modules["client"].create_collection.call_args[1]
         assert call_kwargs["collection_name"] == "test_collection"
